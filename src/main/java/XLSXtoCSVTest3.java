@@ -1,47 +1,84 @@
 
 import org.apache.poi.ss.usermodel.*;
 
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class XLSXtoCSVTest3 {
     public static void main(String[] args) throws IOException {
-        String filePath="../tmpsave/t1.xlsx";
-        String outputPath="test_out.csv";
-        int currentSheetIndex=0;
-        
-        //File inputFile=new File(filePath);
-        FileInputStream fileInputStream=new FileInputStream(filePath);
-        //FileOutputStream fileOutputStream=new FileOutputStream(outputPath);
-        FileWriter fileWriter=new FileWriter(outputPath);
+        System.out.println("Input file path (If more than one file, separate by SPACE) : ");
+        Scanner in=new Scanner(System.in);
+        String filePath=in.nextLine();
+        in.close();
 
-        Workbook workbook= WorkbookFactory.create(fileInputStream);
-        Sheet sheet=workbook.getSheetAt(currentSheetIndex);
-        String str = "";
-
-        for(Row row: sheet)
+        if(filePath.contains(" "))
         {
-            String rowString = "";
-            for(Cell cell:row)
+            String[] filePaths=filePath.split(" ");
+            for(int i=0;i<filePaths.length;i++)
             {
-                if(cell==null)
-                {
-                    rowString=rowString+" "+",";
-                }
-                else
-                {
-                    rowString=rowString+cell+",";
-                }
+                convert(filePaths[i],String.valueOf(i));
             }
-            if(!rowString.isEmpty())
-                str=str+rowString.substring(0,rowString.length()-1)+"\r\n";
+        }
+        else
+        {
+            convert(filePath,"");
         }
 
-        fileWriter.write(str);
-        System.out.println(str);
+
+
+
+
+    }
+
+    private static void convert(String filePath, String outputDirectoryIndex) throws IOException {
+        FileInputStream fileInputStream=new FileInputStream(filePath);
+        Workbook workbook= WorkbookFactory.create(fileInputStream);
+        fileInputStream.close();
+
+        String outputFolderName="File"+outputDirectoryIndex;
+        File outputFolder=new File(outputFolderName);
+        outputFolder.mkdirs();
+
+        System.out.println(filePath);
+        for(int i=0;i<workbook.getNumberOfSheets();i++)
+        {
+
+            Sheet sheet=workbook.getSheetAt(i);
+            String str = "";
+
+            for(Row row: sheet)
+            {
+                String rowString = "";
+                for(Cell cell:row)
+                {
+                    if(cell==null)
+                    {
+                        rowString=rowString+" "+",";
+                    }
+                    else
+                    {
+                        rowString=rowString+cell+",";
+                    }
+                }
+                if(!rowString.isEmpty())
+                    str=str+rowString.substring(0,rowString.length()-1)+"\r\n";
+            }
+
+
+
+            String outputFileName=sheet.getSheetName();
+            String outputFilePath=outputFolderName+"\\"+outputFileName+".csv";
+            FileWriter fileWriter=new FileWriter(outputFilePath);
+            fileWriter.write(str);
+            fileWriter.close();
+            System.out.println(outputFileName+":");
+            System.out.println(str);
+        }
+
+        System.out.println("Conversion successful!");
         workbook.close();
-        fileWriter.close();
     }
 }
